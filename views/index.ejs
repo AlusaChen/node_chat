@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/javascripts/index.js"></script>
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    <input type="text" id="username" disabled="disabled" placeholder="enter your name">
+    <input type="text" id="message" disabled="disabled" style="display:none;" placeholder="enter message">
+    <button disabled="disabled">submit</button>
+    <div class="message">
+    	<ol></ol>
+    </div>
+  </body>
+</html>

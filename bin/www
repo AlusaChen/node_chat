@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+
+var debug = require('debug')('chat');
+
+var app = require('../app');
+
+app.set('port', process.env.PORT || 3000);
+var server = app.listen(app.get('port'), function() {
+  debug('Express server listening on port ' + server.address().port);
+});
+
+
+var sio = require('socket.io')(server);
+
+var users = [];
+sio.sockets.on('connection', function(socket){
+	var info = {};
+
+	socket.on('message', function(data){
+		if(!info.name)
+		{
+			if(users[data])
+			{
+				info.type 		= 'error';
+				info.message	= 'name has been used'
+				socket.send(info);
+				return;
+			}
+			users[data] = socket;
+
+			info.name = data;
+			info.type = 'welcome';
+			socket.send(info);
+
+			info.type = 'login';
+			socket.broadcast.send(info);
+		}
+		else
+		{
+			info.message  = data;
+			info.type	  = 'message';
+			socket.broadcast.send(info);
+		}
+	});
+
+	socket.on('disconnect', function(){
+		if(info.name)
+		{
+			info.type = 'logout';
+			socket.broadcast.send(info);
+			users[info.name] = null;
+		}
+	});
+});
+
