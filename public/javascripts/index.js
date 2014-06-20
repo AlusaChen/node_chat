@@ -1,5 +1,5 @@
 $(function(){
-  var sio = io();
+  var sio = io('/chat');
   sio.on('connect', function(){
     $('input').removeAttr('disabled');
     $('button').removeAttr('disabled');
@@ -33,7 +33,7 @@ $(function(){
         var name = $(this).val();
         if(name.length > 0)
         {
-          submitHandler();
+          submitHandler($(this));
         }
       }
     });
@@ -42,21 +42,23 @@ $(function(){
       if(e.which == 13)
       {
         e.preventDefault();
-        submitHandler();
+        submitHandler($(this));
       }
     });
 
-    $('button').click(function(){
-      submitHandler();
-    });
-
-    function submitHandler()
+    function submitHandler(obj)
     {
-      var msg = $('input').val();
+      var msg = obj.val();
       if(msg.length >0 )
       {
-        sio.send(msg);
-        $('input').val('');
+        var info = {};
+        info.message = msg;
+
+        var room = $('input[name=chatroom]:checked').val();
+        info.room = room;
+        sio.send(info);
+
+        obj.val('');
         if($('input#username').length < 1) $('.message ol').append($('<li></li>').text('Me : ' + msg));
       }
     }

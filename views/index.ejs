@@ -10,9 +10,16 @@
   <body>
     <h1><%= title %></h1>
     <p>Welcome to <%= title %></p>
+
+    <p>选择聊天室 <br />
+      <input type="radio" name="chatroom" value="1" checked="checked">聊天室1
+      <input type="radio" name="chatroom" value="2">聊天室2
+      <input type="radio" name="chatroom" value="3">聊天室3
+    </p>
+
+
     <input type="text" id="username" disabled="disabled" placeholder="enter your name">
     <input type="text" id="message" disabled="disabled" style="display:none;" placeholder="enter message">
-    <button disabled="disabled">submit</button>
     <div class="message">
     	<ol></ol>
     </div>

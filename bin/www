@@ -1,46 +1,84 @@
 #!/usr/bin/env node
 
-var debug = require('debug')('chat');
+var debug 		= require('debug')('chat');
 
-var app = require('../app');
+var app 		= require('../app');
+/*
+var server		= require('http').Server(app);
+var io 			= require('socket.io')(server);
+io.on('connection', function(socket){
+	//############
+});
+server.listen(3000);
+*/
 
 app.set('port', process.env.PORT || 3000);
 var server = app.listen(app.get('port'), function() {
-  debug('Express server listening on port ' + server.address().port);
+  debug('server listening on port ' + server.address().port);
 });
 
 
 var sio = require('socket.io')(server);
 
-var users = [];
-sio.sockets.on('connection', function(socket){
-	var info = {};
+var users  = [];
+var rooms  = [];
+var count  = 0;//第几个登录
+var online = 0;//在线人数
+
+//sio.on('connection', function(){...})	of('xxx') namespace
+sio.of('/chat').on('connection', function(socket){
+
+
+	count ++;
+	online ++;
+
+	var info = {'name':'', room:[], 'count':0};
+
 
 	socket.on('message', function(data){
+		//data  room message
+		console.log(data.room)
+		var room    = data.room || 1;
+		var message = data.message;
+
 		if(!info.name)
 		{
-			if(users[data])
+			var name = message;
+			if(users[name])
 			{
 				info.type 		= 'error';
 				info.message	= 'name has been used'
 				socket.send(info);
 				return;
 			}
-			users[data] = socket;
+			users[name]			= count;
 
-			info.name = data;
+			info.name = name;
+
+
+			if(info.room.indexOf(room) < 0) info.room.push(room);
+
+
 			info.type = 'welcome';
 			socket.send(info);
 
 			info.type = 'login';
 			socket.broadcast.send(info);
+
 		}
 		else
 		{
-			info.message  = data;
+			
+			if(info.room.indexOf(room) < 0) info.room.push(room);
+
+
+			info.message  = message;
 			info.type	  = 'message';
 			socket.broadcast.send(info);
 		}
+
+		console.log(info);
+
 	});
 
 	socket.on('disconnect', function(){
@@ -52,4 +90,3 @@ sio.sockets.on('connection', function(socket){
 		}
 	});
 });
-
