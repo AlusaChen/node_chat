@@ -11,17 +11,27 @@
     <h1><%= title %></h1>
     <p>Welcome to <%= title %></p>
 
-    <p>选择聊天室 <br />
-      <input type="radio" name="chatroom" value="1" checked="checked">聊天室1
-      <input type="radio" name="chatroom" value="2">聊天室2
-      <input type="radio" name="chatroom" value="3">聊天室3
+    <select name="room">
+      <option value="room1">room 1</option>      
+      <option value="room2">room 2</option>      
+    </select>
+
+    <button id="join">加入聊天室</button>
+    <button id="leave">离开聊天室</button>
+
+    <div id="room_list" style="background:gray;">
+      <h2>加入的聊天室</h2>
+      <ol></ol>
+    </div>
+
+    <p>
+    <input type="text" id="nickname" placeholder="enter your nickname">
     </p>
+    <br />
+    <input type="text" id="message"  style="display:none;" placeholder="enter message">
 
-
-    <input type="text" id="username" disabled="disabled" placeholder="enter your name">
-    <input type="text" id="message" disabled="disabled" style="display:none;" placeholder="enter message">
-    <div class="message">
-    	<ol></ol>
+    <div id="income">
+      <ol></ol>
     </div>
   </body>
 </html>

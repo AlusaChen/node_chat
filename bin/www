@@ -18,75 +18,104 @@ var server = app.listen(app.get('port'), function() {
 });
 
 
-var sio = require('socket.io')(server);
+var io 			= require('socket.io')(server);
 
-var users  = [];
-var rooms  = [];
-var count  = 0;//第几个登录
-var online = 0;//在线人数
+var users 		= [];
+var count		= 0;
 
-//sio.on('connection', function(){...})	of('xxx') namespace
-sio.of('/chat').on('connection', function(socket){
+io.on('connection', function(socket){
+	console.log('connection!!!!!!!');
 
+	var info	= {nickname : '', room : []}
 
-	count ++;
-	online ++;
-
-	var info = {'name':'', room:[], 'count':0};
-
-
-	socket.on('message', function(data){
-		//data  room message
-		console.log(data.room)
-		var room    = data.room || 1;
-		var message = data.message;
-
-		if(!info.name)
+	socket.on('room', function(room){
+		if(info.room.indexOf(room) < 0)
 		{
-			var name = message;
-			if(users[name])
-			{
-				info.type 		= 'error';
-				info.message	= 'name has been used'
-				socket.send(info);
-				return;
-			}
-			users[name]			= count;
-
-			info.name = name;
-
-
-			if(info.room.indexOf(room) < 0) info.room.push(room);
-
-
-			info.type = 'welcome';
-			socket.send(info);
-
-			info.type = 'login';
-			socket.broadcast.send(info);
-
+			info.room.push(room);
+			socket.join(room);
 		}
 		else
 		{
-			
-			if(info.room.indexOf(room) < 0) info.room.push(room);
+			info.type    = 'error';
+			info.message = 'you are already in this room'
+			socket.send(info);
+		}
+	});
 
+	socket.on('leaveroom', function(room){
+		var i = info.room.indexOf(room);
+		if(i >= 0)
+		{
+			info.room.splice(i, 1);
+			socket.leave(room);
+		}
+		else
+		{
+			info.type    = 'error';
+			info.message = 'you are not in this room'
+			socket.send(info);
+		}
+	});
 
-			info.message  = message;
-			info.type	  = 'message';
-			socket.broadcast.send(info);
+	socket.on('message', function(data){
+		if(!info.nickname)
+		{
+			if(users[data])
+			{
+				info.type 	 = 'error';
+				info.message = 'the name has been used';
+				socket.send(info);
+				return;
+			}
+			count ++ ;
+			users[data]	  = count;
+			info.nickname = data;
+			info.type	  = 'welcome';
+			socket.send(info);
+			info.type 	  = 'login';
+		}
+		else
+		{
+			info.type     = 'message';
+			info.message  = data;
 		}
 
-		console.log(info);
-
+		broadcast(info);
+		//console.log(socket.rooms);
 	});
 
 	socket.on('disconnect', function(){
-		if(info.name)
+		if(info.nickname)
 		{
 			info.type = 'logout';
-			socket.broadcast.send(info);
-			users[info.name] = null;
+			broadcast(info);
+			var i = users.indexOf(info.nickname);
+			if(i >= 0 ) users.splice(i, 1);
 		}
 	});
+
+	function broadcast(data)
+	{
+		var rooms = socket.rooms;
+		for(var i in rooms)
+		{
+			if(i == 0) continue;
+			socket.broadcast.to(rooms[i]).send(data);
+			//socket.broadcast.in(rooms[i]).send(msg); //include the sender
+		}
+	}
+	
 });
+
+/*
+setInterval(function(){
+	io.in('room1').emit('message', 'what is going on?');
+	io.in('room2').emit('message', 'anyone here?')	
+},2000);
+*/
+//io.to(rooms[i]).emit('message', msg);
+//io.in(rooms[i]).emit('message', msg); //include the sender
+
+//server.listen(3000);
+
+

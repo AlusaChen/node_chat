@@ -1,96 +1,88 @@
-$(function(){
-  var sio = io('/chat');
-  sio.on('connect', function(){
-    $('input').removeAttr('disabled');
-    $('button').removeAttr('disabled');
+var io = io.connect();
+io.on('connect', function(){
+  var rooms   = [];
+  var msg_box = $('#income').find('ol');
 
-
-    sio.on('message', function(info){
-      switch(info.type)
-      {
-        case 'welcome':
-          showWelcome(info);
-          break;
-        case 'login':
-          showLogin(info);
-          break;
-        case 'logout':
-          showLogout(info);
-          break;
-        case 'error':
-          showError(info);
-          break;
-        default:
-          showMessage(info);            
-          break;
-      }
-    });
-
-    $('input#username').keydown(function(e){
-      if(e.which == 13)
-      {
-        e.preventDefault();
-        var name = $(this).val();
-        if(name.length > 0)
-        {
-          submitHandler($(this));
-        }
-      }
-    });
-
-    $('input#message').keydown(function(e){
-      if(e.which == 13)
-      {
-        e.preventDefault();
-        submitHandler($(this));
-      }
-    });
-
-    function submitHandler(obj)
+  //enter room
+  $('button#join').click(function(){
+    var room = $('select[name=room]').val();
+    if(rooms.indexOf(room) < 0)
     {
-      var msg = obj.val();
-      if(msg.length >0 )
-      {
-        var info = {};
-        info.message = msg;
-
-        var room = $('input[name=chatroom]:checked').val();
-        info.room = room;
-        sio.send(info);
-
-        obj.val('');
-        if($('input#username').length < 1) $('.message ol').append($('<li></li>').text('Me : ' + msg));
-      }
+      rooms.push(room);
+      $('#room_list').find('ol').append($('<li _room="'+room+'"></li>').text(room));
+      io.emit('room', room);
     }
-
-    function showWelcome(info)
-    {
-      $('input#username').remove();
-      $('input#message').show();
-      $('.message ol').append($('<li></li>').text('welcome ' + info.name));
-    }
-
-    function showMessage(info)
-    {
-      $('.message ol').append($('<li></li>').text(info.name + ' : ' +info.message));
-    }
-
-    function showLogin(info)
-    {
-      $('.message ol').append($('<li></li>').text(info.name + ' login'));
-    }
-
-    function showLogout(info)
-    {
-      $('.message ol').append($('<li></li>').text(info.name + ' logout'));
-    }
-
-    function showError(info)
-    {
-      alert(info.message);
-    }
-
-
-
   });
+
+  //leave room
+  $('button#leave').click(function(){
+    var room = $('select[name=room]').val();
+    if(rooms.indexOf(room) >= 0)
+    {
+      rooms.splice(rooms.indexOf(room), 1);
+      $('#room_list').find('[_room='+room+']').remove();
+      io.emit('leaveroom', room);
+    }
+  });
+
+  //send message
+  $('#message').keypress(function(e){
+    if(e.which == 13)
+    {
+      var msg = $(this).val();
+      if(msg.length > 0)
+      {
+        io.send(msg);
+      }
+      $(this).val('');
+      msg_box.append($('<li></li>').text('Me : ' + msg));
+    }
+  });
+
+  //send name
+  $('#nickname').keypress(function(e){
+    if(e.which == 13)
+    {
+      var nickname = $(this).val();
+      if(nickname.length > 0)
+      {
+        var msg = nickname;
+        io.send(msg);
+      }
+      $(this).val('');
+
+    }
+  });
+
+
+
+  //receive data
+  io.on('message', function(data){
+    switch(data.type)
+    {
+      case 'welcome':
+        msg_box.append($('<li></li>').text('welcome , ' + data.nickname));
+        $('#nickname').remove();
+        $('#message').show();
+        break;
+      case 'error':
+        alert(data.message);
+        break;
+      case 'login':
+        msg_box.append($('<li></li>').text(data.nickname + ' login!'));
+        break;
+      case 'logout':
+        msg_box.append($('<li></li>').text(data.nickname  + ' logout!'));
+        break;
+      default:
+        msg_box.append($('<li></li>').text(data.nickname + ' : ' + data.message));
+        break;
+    }
+  });
+
 });
+
+
+
+
+
