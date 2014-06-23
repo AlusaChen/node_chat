@@ -9,7 +9,7 @@ io.on('connect', function(){
     if(rooms.indexOf(room) < 0)
     {
       rooms.push(room);
-      $('#room_list').find('ol').append($('<li _room="'+room+'"></li>').text(room));
+      $('#room_list').find('ul').append($('<li _room="'+room+'"><input type="checkbox" name="to_room" value="'+room+'">'+room+'</li>'));
       io.emit('room', room);
     }
   });
@@ -32,7 +32,16 @@ io.on('connect', function(){
       var msg = $(this).val();
       if(msg.length > 0)
       {
-        io.send(msg);
+        var to_rooms = [];
+        $('[name=to_room]:checked').each(function(){
+          to_rooms.push($(this).val());
+        });
+        if(to_rooms.length < 1)
+        {
+          alert('请xuan')
+        }
+        alert(to_rooms)
+        //io.send(msg);
       }
       $(this).val('');
       msg_box.append($('<li></li>').text('Me : ' + msg));
@@ -46,11 +55,9 @@ io.on('connect', function(){
       var nickname = $(this).val();
       if(nickname.length > 0)
       {
-        var msg = nickname;
-        io.send(msg);
+        io.emit('login', nickname);
       }
       $(this).val('');
-
     }
   });
 
@@ -61,6 +68,7 @@ io.on('connect', function(){
     switch(data.type)
     {
       case 'welcome':
+        closeDialog();
         msg_box.append($('<li></li>').text('welcome , ' + data.nickname));
         $('#nickname').remove();
         $('#message').show();
@@ -74,12 +82,26 @@ io.on('connect', function(){
       case 'logout':
         msg_box.append($('<li></li>').text(data.nickname  + ' logout!'));
         break;
+      case 'enter':
+        msg_box.append($('<li></li>').text(data.nickname + ' enter '+data.room));
+        break;
+      case 'leave':
+        msg_box.append($('<li></li>').text(data.nickname + ' leave '+data.room));
+        break;
       default:
         msg_box.append($('<li></li>').text(data.nickname + ' : ' + data.message));
         break;
     }
   });
 
+  function openDialog() {
+    Avgrund.show( "#default-popup" );
+  }
+  function closeDialog() {
+    Avgrund.hide();
+  }
+
+  openDialog();
 });
 
 

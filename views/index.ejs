@@ -1,37 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html class="avgrund-ready">
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='/stylesheets/avgrund.css' />
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/javascripts/index.js"></script>
+    <script type="text/javascript" src="/javascripts/avgrund.js"></script>
+
   </head>
   <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-
-    <select name="room">
-      <option value="room1">room 1</option>      
-      <option value="room2">room 2</option>      
-    </select>
-
-    <button id="join">加入聊天室</button>
-    <button id="leave">离开聊天室</button>
-
-    <div id="room_list" style="background:gray;">
-      <h2>加入的聊天室</h2>
-      <ol></ol>
+    <div id="default-popup" class="avgrund-popup">
+      <input type="text" id="nickname" placeholder="Enter your nickname">
     </div>
 
-    <p>
-    <input type="text" id="nickname" placeholder="enter your nickname">
-    </p>
-    <br />
-    <input type="text" id="message"  style="display:none;" placeholder="enter message">
+    <div id="wrapper" class="avgrund-contents">
+      <h1><%= title %></h1>
+      <p>Welcome to <%= title %></p>
+      <button onclick="javascript:openDialog();">click it</button>
+      <select name="room">
+        <option value="room1">room 1</option>      
+        <option value="room2">room 2</option>      
+      </select>
 
-    <div id="income">
-      <ol></ol>
+      <button id="join">加入聊天室</button>
+      <button id="leave">离开聊天室</button>
+
+      <div id="room_list" style="background:gray;">
+        <h2>加入的聊天室</h2>
+        <ul>
+
+        </ul>
+      </div>
+      <input type="text" id="message"  style="display:none;" placeholder="enter message">
+
+      <div id="income">
+        <ol></ol>
+      </div>
     </div>
+     <script type="text/javascript">
+      
+    </script>
   </body>
 </html>

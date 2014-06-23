@@ -21,18 +21,44 @@ var server = app.listen(app.get('port'), function() {
 var io 			= require('socket.io')(server);
 
 var users 		= [];
-var count		= 0;
+//var count		= 0;
 
 io.on('connection', function(socket){
 	console.log('connection!!!!!!!');
 
-	var info	= {nickname : '', room : []}
+	var info	= {nickname : '', rooms : []}
+
+	socket.on('login', function(nickname){
+		if(!info.nickname)
+		{
+			if(users.indexOf(nickname) >= 0)
+			{
+				info.type 	 = 'error';
+				info.message = 'the name has been used';
+				socket.send(info);
+				return;
+			}
+			users.push(nickname);
+			info.nickname 	  = nickname;
+			info.type	  	  = 'welcome';
+			socket.send(info);
+		}
+		else
+		{
+			info.type		  = 'error';
+			info.message	  = 'you have already login';
+			socket.send(info);
+		}
+	});
 
 	socket.on('room', function(room){
-		if(info.room.indexOf(room) < 0)
+		if(info.rooms.indexOf(room) < 0)
 		{
-			info.room.push(room);
+			info.rooms.push(room);
 			socket.join(room);
+			info.type		  = 'enter';
+			info.room 		  = room;
+			socket.broadcast.to(room).send(info);
 		}
 		else
 		{
@@ -43,11 +69,13 @@ io.on('connection', function(socket){
 	});
 
 	socket.on('leaveroom', function(room){
-		var i = info.room.indexOf(room);
+		var i = info.rooms.indexOf(room);
 		if(i >= 0)
 		{
-			info.room.splice(i, 1);
+			info.rooms.splice(i, 1);
 			socket.leave(room);
+			info.type	= 'leave';
+			socket.broadcast.to(room).send(info);
 		}
 		else
 		{
@@ -58,30 +86,9 @@ io.on('connection', function(socket){
 	});
 
 	socket.on('message', function(data){
-		if(!info.nickname)
-		{
-			if(users[data])
-			{
-				info.type 	 = 'error';
-				info.message = 'the name has been used';
-				socket.send(info);
-				return;
-			}
-			count ++ ;
-			users[data]	  = count;
-			info.nickname = data;
-			info.type	  = 'welcome';
-			socket.send(info);
-			info.type 	  = 'login';
-		}
-		else
-		{
-			info.type     = 'message';
-			info.message  = data;
-		}
-
+		info.type     = 'message';
+		info.message  = data;
 		broadcast(info);
-		//console.log(socket.rooms);
 	});
 
 	socket.on('disconnect', function(){
@@ -101,21 +108,10 @@ io.on('connection', function(socket){
 		{
 			if(i == 0) continue;
 			socket.broadcast.to(rooms[i]).send(data);
-			//socket.broadcast.in(rooms[i]).send(msg); //include the sender
 		}
 	}
 	
 });
 
-/*
-setInterval(function(){
-	io.in('room1').emit('message', 'what is going on?');
-	io.in('room2').emit('message', 'anyone here?')	
-},2000);
-*/
-//io.to(rooms[i]).emit('message', msg);
-//io.in(rooms[i]).emit('message', msg); //include the sender
-
-//server.listen(3000);
 
 
