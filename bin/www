@@ -86,15 +86,25 @@ io.on('connection', function(socket){
 	});
 
 	socket.on('message', function(data){
+		var to_rooms  = data.rooms;
+		if(to_rooms.length < 1)
+		{
+			info.type    = 'error';
+			info.message = 'you should choose room first';
+			socket.send(info);
+			return;
+		}
+
 		info.type     = 'message';
-		info.message  = data;
+		info.message  = data.message;
+		info.to_rooms = to_rooms;
 		broadcast(info);
 	});
 
 	socket.on('disconnect', function(){
 		if(info.nickname)
 		{
-			info.type = 'logout';
+			info.type = 'leave';
 			broadcast(info);
 			var i = users.indexOf(info.nickname);
 			if(i >= 0 ) users.splice(i, 1);
@@ -103,11 +113,14 @@ io.on('connection', function(socket){
 
 	function broadcast(data)
 	{
-		var rooms = socket.rooms;
-		for(var i in rooms)
+		if(!data.to_rooms) 
 		{
-			if(i == 0) continue;
-			socket.broadcast.to(rooms[i]).send(data);
+			data.to_rooms = socket.rooms;
+			data.to_rooms.splice(0, 1);
+		}
+		for(var i in data.to_rooms)
+		{
+			socket.broadcast.to(data.to_rooms[i]).send(data);
 		}
 	}
 	

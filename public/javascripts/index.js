@@ -38,10 +38,11 @@ io.on('connect', function(){
         });
         if(to_rooms.length < 1)
         {
-          alert('请xuan')
+          alert('请选择聊天室');
+          return;
         }
-        alert(to_rooms)
-        //io.send(msg);
+        var info = {'message':msg, 'rooms':to_rooms};
+        io.send(info);
       }
       $(this).val('');
       msg_box.append($('<li></li>').text('Me : ' + msg));
@@ -96,6 +97,7 @@ io.on('connect', function(){
 
   function openDialog() {
     Avgrund.show( "#default-popup" );
+    $('#nickname').focus();
   }
   function closeDialog() {
     Avgrund.hide();
